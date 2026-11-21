@@ -1,0 +1,22 @@
+{
+  "name": "restful-booker-platform-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API and UI test framework for the Restful Booker Platform admin tool",
+  "scripts": {
+    "test": "playwright test",
+    "test:platform-api": "playwright test --project=platform-api",
+    "test:platform-ui": "playwright test --project=platform-ui",
+    "test:booker-api": "playwright test --project=booker-api",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1",
+    "@types/node": "26.6.6",
+    "typescript": "7.0.2"
+  }
+}
