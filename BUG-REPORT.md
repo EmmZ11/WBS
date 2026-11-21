@@ -4,7 +4,22 @@ Every defect below was reproduced by hand during exploration, then encoded in an
 automated test that fails while the defect exists. The test name is given for each,
 so the evidence (trace, screenshot, request and response) is in the HTML report.
 
-**Run used for this report:** _pending first CI run_
+**Run used for this report:** GitHub Actions run
+[44955192025](https://github.com/EmmZ11/WBS/actions/runs/44955192025), commit `93aa3ad`,
+21 November 2026. The HTML report of that run is committed in [report/](report/index.html).
+
+| Tests | Passed | Failed | Flaky | Skipped |
+|---|---|---|---|---|
+| 78 (76 tests + 2 login setups) | 45 | 33 | 0 | 0 |
+
+All 33 failures are the defects below; no test failed for any other reason. A local
+run on the same commit gave the same result.
+
+| Project | Failures | Bugs |
+|---|---|---|
+| platform-api | 15 | RBP-01, 02, 03, 05, 06, 07, 08, 09, 10, 11, 12 |
+| platform-ui | 12 | RBP-02, 04, 05, 06, 07, 09, 10, 13, 14, 15 |
+| booker-api | 6 | RB-01 to RB-06 |
 
 ## Severity
 
