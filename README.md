@@ -108,4 +108,6 @@ tests/
   browsers would add time without adding findings.
 - CI retries a failed test once to separate network noise from real defects.
   A test that passes on retry is reported as flaky, never silently as passed.
-- Results depend on two third-party demo services being up.
+- Results depend on two third-party demo services being up. If the platform resets
+  or has an outage mid-run, the affected UI tests stop with a `precondition:` message
+  (not a bug ID). Re-run the job; a precondition failure is never a product finding.

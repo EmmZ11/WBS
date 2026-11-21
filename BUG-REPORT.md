@@ -262,3 +262,16 @@ on status codes treat a failed login as a success. No token is issued, which is 
 - Report dates: selecting nights 10–12 gives checkout on the 13th in every time zone
   tested (check-out is the morning after the last night).
 - Platform data disappearing after a while: the public demo resets on a schedule; by design.
+
+## Observations (not logged as defects)
+
+- **Room list lagging behind the API.** In one CI attempt, a room the API had just
+  confirmed was missing from the admin Rooms list. This matches my exploration note
+  that room data "seemed cached" and "eventually caught up". Seen once, not reproduced
+  on demand, so it is recorded here rather than as a bug. The UI tests now reload until
+  a new room appears and, if it never does, stop with a precondition message so this
+  can never be mistaken for another defect.
+- **Platform outage during CI.** One CI run (44955610869, first attempt) hit a period
+  where the demo returned 500 "An unexpected error occurred" for room creation and
+  pages timed out. The site recovered minutes later and a re-run of the same commit
+  was normal. This is the shared public demo, not the system the bugs describe.

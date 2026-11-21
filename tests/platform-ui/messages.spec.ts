@@ -21,6 +21,7 @@ test.describe('Platform UI: messages', () => {
   test('opening a message shows its full text', { annotation: { type: 'bug', description: 'RBP-07' } }, async ({ page }) => {
     const messages = new MessagesPage(page);
     await messages.goto();
+    await expect(messages.row(subject), `precondition: message "${subject}" is not listed`).toBeVisible();
     await messages.open(subject);
     await expect(messages.viewer, 'RBP-07: nothing opens (GET /api/message/{id} returns 500)').toContainText(
       'This is a fictional message created by an automated test.',

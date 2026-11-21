@@ -1,4 +1,4 @@
-import type { Locator, Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 import type { Room } from '../data';
 
 /**
@@ -25,6 +25,20 @@ export class RoomsPage {
 
   async goto(): Promise<void> {
     await this.page.goto('/admin/rooms');
+  }
+
+  /**
+   * Opens the Rooms page and waits for a room that was just created through the API.
+   * The list can lag behind the API for a moment, so the page is reloaded until the
+   * room shows. If it never shows (for example the demo site reset its data), the test
+   * stops here with a precondition message, so it is never mistaken for a product defect.
+   */
+  async gotoWithRoom(roomName: string): Promise<void> {
+    await this.goto();
+    await expect(async () => {
+      await this.page.reload();
+      await expect(this.row(roomName)).toBeVisible({ timeout: 3_000 });
+    }, `precondition: room "${roomName}" created through the API is not listed`).toPass({ timeout: 20_000 });
   }
 
   row(roomName: string): Locator {

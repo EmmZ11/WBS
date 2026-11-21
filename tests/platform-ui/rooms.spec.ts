@@ -46,7 +46,7 @@ test.describe('Platform UI: rooms', () => {
     const room = buildRoom({ features: ['WiFi'] });
     await adminApi.createRoomAndGetId(room);
     const rooms = new RoomsPage(page);
-    await rooms.goto();
+    await rooms.gotoWithRoom(room.roomName);
     await rooms.open(room.roomName);
     await expect(page).toHaveURL(/\/admin\/room\/\d+$/);
     await expect(page.getByText(room.roomName), 'RBP-06: the room page should show the room (GET /api/room/{id} returns 500)').toBeVisible();
@@ -56,7 +56,7 @@ test.describe('Platform UI: rooms', () => {
     const room = buildRoom();
     await adminApi.createRoomAndGetId(room);
     const rooms = new RoomsPage(page);
-    await rooms.goto();
+    await rooms.gotoWithRoom(room.roomName);
     await rooms.delete(room.roomName);
     await expect(rooms.row(room.roomName), 'RBP-05: the room should be removed (DELETE /api/room/{id} returns 500)').toBeHidden();
   });
@@ -66,8 +66,7 @@ test.describe('Platform UI: rooms', () => {
     const room = buildRoom({ roomName: `<img src=x onerror=window.__xss=1>${Date.now() % 100000}` });
     await adminApi.createRoomAndGetId(room);
     const rooms = new RoomsPage(page);
-    await rooms.goto();
-    await expect(rooms.row(room.roomName)).toBeVisible();
+    await rooms.gotoWithRoom(room.roomName);
     expect(await page.evaluate(() => (window as unknown as { __xss?: number }).__xss)).toBeUndefined();
   });
 });

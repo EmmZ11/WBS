@@ -27,6 +27,8 @@ test.describe('Platform UI: report and booking', () => {
     await report.selectNights('10', '11');
     await report.firstname.fill('Testa');
     await report.lastname.fill(lastname);
+    await expect(report.room.locator('option', { hasText: room.roomName }),
+      `precondition: room "${room.roomName}" created through the API is not offered`).toHaveCount(1);
     await report.room.selectOption({ label: room.roomName });
     const created = page.waitForResponse((r) => r.url().endsWith('/api/booking') && r.request().method() === 'POST');
     await report.book.click();
