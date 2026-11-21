@@ -47,6 +47,8 @@ test.describe('Platform UI: admin login', () => {
     await login.login(username, password);
     await expect(page).toHaveURL(/\/admin\/rooms/);
     await login.logout.click();
+    // Logout navigates to the front page; wait for it so the next navigation does not race it.
+    await expect(page).toHaveURL(/\/$/);
     await page.goto('/admin/rooms');
     await expect(login.submit).toBeVisible();
   });

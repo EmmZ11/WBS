@@ -23,9 +23,9 @@ jobs:
       BOOKER_USERNAME: ${{ secrets.BOOKER_USERNAME }}
       BOOKER_PASSWORD: ${{ secrets.BOOKER_PASSWORD }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -44,7 +44,7 @@ jobs:
 
       - name: Upload HTML report
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: playwright-report/
@@ -52,7 +52,7 @@ jobs:
 
       - name: Upload JUnit results
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: junit-results
           path: test-results/junit.xml

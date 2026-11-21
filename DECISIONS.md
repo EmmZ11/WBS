@@ -39,8 +39,12 @@ to, because the purpose of this suite is to report the system's state accurately
 **Setup projects guard against false results.** If a login fails, the dependent
 tests are skipped, not run. A credentials problem can never pass for a product defect.
 
-**Credentials are never in the repo.** Local runs read `.env`, which is git-ignored;
-CI reads repository secrets.
+**Credentials are never in the repo or in shared reports.** Local runs read `.env`,
+which is git-ignored; CI reads repository secrets. Playwright traces record request
+bodies and typed values, including passwords, so traces are produced only on local
+runs (in the git-ignored `test-results/`). CI reports keep screenshots, error
+messages and step logs, which are enough to see each defect. I found this by scanning
+the first CI report for the credential values before committing it.
 
 ## What I would do differently
 

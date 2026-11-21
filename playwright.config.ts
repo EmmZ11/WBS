@@ -20,7 +20,9 @@ export default defineConfig({
     baseURL: BASE_URL,
     timezoneId: 'Europe/London',
     locale: 'en-GB',
-    trace: 'retain-on-failure',
+    // Traces record request bodies and typed values, including login credentials.
+    // They are kept locally (git-ignored) but never produced in CI, whose reports are shared.
+    trace: process.env.CI ? 'off' : 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
   projects: [

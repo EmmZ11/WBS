@@ -21,8 +21,23 @@ export class LoginPage {
   }
 
   async login(username: string, password: string): Promise<void> {
-    await this.username.fill(username);
-    await this.password.fill(password);
+    await enterSecret(this.username, username);
+    await enterSecret(this.password, password);
     await this.submit.click();
   }
+}
+
+/**
+ * Enters a value without it appearing in the HTML report. fill() and keyboard input
+ * write the value into the step title ("Fill \"…\""), which would publish credentials.
+ * This sets the value the way a typed input does (native setter + input event, which
+ * React listens for), so the report only shows an "Evaluate" step.
+ */
+async function enterSecret(field: Locator, value: string): Promise<void> {
+  await field.evaluate((element, secret) => {
+    const input = element as HTMLInputElement;
+    const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+    setValue?.call(input, secret);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }, value);
 }

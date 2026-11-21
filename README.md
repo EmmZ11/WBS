@@ -63,7 +63,8 @@ npm run typecheck           # TypeScript check
 GitHub Actions runs on every push and pull request: typecheck, then all projects.
 Each run publishes:
 - a pass/fail summary table on the run page,
-- the HTML report as the `playwright-report` artifact (traces and screenshots of failures),
+- the HTML report as the `playwright-report` artifact (error details and screenshots of failures;
+  traces are local-only because they record credentials),
 - JUnit XML as the `junit-results` artifact.
 
 The four credentials are repository secrets with the same names as in `.env`.
