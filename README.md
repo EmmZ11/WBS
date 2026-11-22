@@ -45,7 +45,7 @@ tests) and opens the HTML report.
 | System | How |
 |---|---|
 | Windows | Double-click `run-tests.cmd` |
-| macOS / Linux | Run `./run-tests.sh` in a terminal |
+| macOS / Linux | Run `bash run-tests.sh` in a terminal |
 
 The only prerequisite is Node.js 22 or newer (https://nodejs.org). The run takes about
 three minutes and ends with failures: those are the defects in BUG-REPORT.md.

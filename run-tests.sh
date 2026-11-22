@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-click setup and test run (macOS / Linux): ./run-tests.sh
+# One-click setup and test run (macOS / Linux): bash run-tests.sh
 # It does what the CI pipeline does: install, typecheck, lint, run every test project,
 # then opens the HTML report.
 set -euo pipefail
