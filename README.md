@@ -36,9 +36,23 @@ Two setup projects run first: `setup` logs in to the platform once and saves the
 session; `booker-setup` checks the Option A login works (tokens are then created
 once per worker).
 
+## One-click run
+
+Installs everything, asks for the four logins the first time (passwords are not shown
+and stay in the git-ignored `.env`), runs the same steps as CI (typecheck, lint, all
+tests) and opens the HTML report.
+
+| System | How |
+|---|---|
+| Windows | Double-click `run-tests.cmd` |
+| macOS / Linux | Run `./run-tests.sh` in a terminal |
+
+The only prerequisite is Node.js 22 or newer (https://nodejs.org). The run takes about
+three minutes and ends with failures: those are the defects in BUG-REPORT.md.
+
 ## Setup
 
-Requirements: Node.js 22 or newer (CI uses the version in `.nvmrc`), npm, internet access.
+To do the same by hand. Requirements: Node.js 22 or newer (CI uses the version in `.nvmrc`), npm, internet access.
 
 ```bash
 npm ci
