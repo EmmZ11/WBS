@@ -9,14 +9,19 @@
     "test:platform-ui": "playwright test --project=platform-ui",
     "test:booker-api": "playwright test --project=booker-api",
     "report": "playwright show-report",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
   },
   "engines": {
     "node": ">=22"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@playwright/test": "1.65.1",
     "@types/node": "26.6.6",
-    "typescript": "7.0.2"
+    "eslint": "10.15.0",
+    "eslint-plugin-playwright": "2.12.2",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.73.0"
   }
 }

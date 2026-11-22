@@ -1,11 +1,9 @@
-// Fictional test data only. Every value carries a unique suffix so parallel runs,
-// and other people using the shared demo site, never collide with our records.
+// Fictional test data for the Restful Booker Platform, and the shapes its API returns.
+// Names, last names and subjects carry a random id, so each test can find its own
+// records on a shared site.
+import { uniqueId } from '../utils/unique-id';
 
-let counter = 0;
-export function uniqueId(): string {
-  counter += 1;
-  return `${Date.now().toString(36)}${counter}`.slice(-8);
-}
+// ---- Request bodies -------------------------------------------------------------
 
 export interface Room {
   roomName: string;
@@ -16,6 +14,64 @@ export interface Room {
   description?: string;
   image?: string;
 }
+
+export interface Booking {
+  roomid: number;
+  firstname: string;
+  lastname: string;
+  depositpaid: boolean;
+  email: string;
+  phone: string;
+  bookingdates: { checkin: string; checkout: string };
+}
+
+export interface Message {
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  description: string;
+}
+
+// ---- Response bodies ------------------------------------------------------------
+
+export interface StoredRoom extends Room {
+  roomid: number;
+}
+
+export interface StoredBooking extends Omit<Booking, 'email' | 'phone'> {
+  bookingid: number;
+}
+
+export interface MessageSummary {
+  id: number;
+  name: string;
+  subject: string;
+  read: boolean;
+}
+
+export interface ReportEntry {
+  start: string;
+  end: string;
+  title: string;
+}
+
+export interface Branding {
+  name: string;
+  logoUrl: string;
+  description: string;
+  directions: string;
+  map: { latitude: number; longitude: number };
+  contact: { name: string; phone: string; email: string };
+  address: { line1: string; line2: string; postTown: string; county: string; postCode: string };
+}
+
+/** Error body for validation failures on rooms and bookings. */
+export interface ValidationErrors {
+  errors: string[];
+}
+
+// ---- Builders -------------------------------------------------------------------
 
 export function buildRoom(overrides: Partial<Room> = {}): Room {
   return {
@@ -28,16 +84,6 @@ export function buildRoom(overrides: Partial<Room> = {}): Room {
     image: '/images/room1.jpg',
     ...overrides,
   };
-}
-
-export interface Booking {
-  roomid: number;
-  firstname: string;
-  lastname: string;
-  depositpaid: boolean;
-  email: string;
-  phone: string;
-  bookingdates: { checkin: string; checkout: string };
 }
 
 /** ISO date (yyyy-mm-dd) a number of days from today. */
@@ -58,14 +104,6 @@ export function buildBooking(roomid: number, overrides: Partial<Booking> = {}): 
     bookingdates: { checkin: isoDate(30), checkout: isoDate(32) },
     ...overrides,
   };
-}
-
-export interface Message {
-  name: string;
-  email: string;
-  phone: string;
-  subject: string;
-  description: string;
 }
 
 export function buildMessage(overrides: Partial<Message> = {}): Message {

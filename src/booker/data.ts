@@ -1,5 +1,6 @@
-// Fictional test data for the Restful Booker API. A unique last name lets each
-// test find its own booking on a shared, public service.
+// Fictional test data for the Restful Booker API, and the shapes it returns.
+// A random last name lets each test find its own booking on a shared, public service.
+import { uniqueId } from '../utils/unique-id';
 
 export interface BookerBooking {
   firstname: string;
@@ -10,16 +11,20 @@ export interface BookerBooking {
   additionalneeds?: string;
 }
 
-let counter = 0;
-function uniqueSuffix(): string {
-  counter += 1;
-  return `${Date.now().toString(36)}${counter}`;
+export interface CreatedBooking {
+  bookingid: number;
+  booking: BookerBooking;
+}
+
+export interface TokenResponse {
+  token?: string;
+  reason?: string;
 }
 
 export function buildBookerBooking(overrides: Partial<BookerBooking> = {}): BookerBooking {
   return {
     firstname: 'Testa',
-    lastname: `Fictional${uniqueSuffix()}`,
+    lastname: `Fictional${uniqueId()}`,
     totalprice: 240,
     depositpaid: true,
     bookingdates: { checkin: '2027-06-01', checkout: '2027-06-04' },

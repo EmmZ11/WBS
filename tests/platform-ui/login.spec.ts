@@ -3,7 +3,18 @@ import { adminCredentials } from '../../src/config';
 import { LoginPage } from '../../src/platform/pages/login-page';
 
 // These tests exercise the login form itself, so they start without a session.
-test.use({ storageState: { cookies: [], origins: [] } });
+// A failure report must never contain the credentials typed into the form: screenshots
+// are off here, and after a failure the fields are cleared before the page snapshot
+// that Playwright attaches (verified: the snapshot is taken after this hook).
+test.use({ storageState: { cookies: [], origins: [] }, screenshot: 'off' });
+
+test.afterEach(async ({ page }, testInfo) => {
+  if (testInfo.status === testInfo.expectedStatus) return;
+  const login = new LoginPage(page);
+  for (const field of [login.username, login.password]) {
+    if (await field.isVisible()) await field.clear();
+  }
+});
 
 test.describe('Platform UI: admin login', () => {
   test('valid credentials open the admin area', async ({ page }) => {
@@ -36,6 +47,7 @@ test.describe('Platform UI: admin login', () => {
 
   test('admin pages show the login form when not logged in', async ({ page }) => {
     await page.goto('/admin/rooms');
+    // The login form rendering at the rooms URL is the evidence; the list must not be there.
     await expect(new LoginPage(page).submit).toBeVisible();
     await expect(page.getByTestId('roomlisting')).toHaveCount(0);
   });

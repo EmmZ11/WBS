@@ -6,7 +6,6 @@ export class AdminNav {
   readonly report: Locator;
   readonly branding: Locator;
   readonly messages: Locator;
-  readonly logout: Locator;
 
   constructor(page: Page) {
     const nav = page.getByRole('navigation');
@@ -14,6 +13,5 @@ export class AdminNav {
     this.report = nav.getByRole('link', { name: 'Report' });
     this.branding = nav.getByRole('link', { name: 'Branding' });
     this.messages = nav.getByRole('link', { name: /^Messages/ });
-    this.logout = nav.getByRole('button', { name: 'Logout' });
   }
 }

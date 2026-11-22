@@ -1,12 +1,13 @@
 import { expect, test } from '../../src/fixtures';
 import { BrandingPage } from '../../src/platform/pages/branding-page';
 
-// Branding is shared site-wide data: these tests submit it unchanged, or with an
-// invalid value the API refuses, so the live branding is never altered.
+// Branding is shared site-wide data. These tests submit it unchanged, or with an
+// invalid email the API refuses (checked first in the API suite), so the live
+// branding is not altered.
 test.describe('Platform UI: branding', () => {
   test('the form shows the branding stored in the API', async ({ page, adminApi }) => {
     const branding = new BrandingPage(page);
-    const stored = await (await adminApi.getBranding()).json();
+    const stored = await adminApi.readBranding();
     await branding.goto();
     await expect(branding.name).toHaveValue(stored.name);
     await expect(branding.contactEmail).toHaveValue(stored.contact.email);
@@ -23,11 +24,15 @@ test.describe('Platform UI: branding', () => {
   });
 
   test('an invalid email is refused with a message about the email field', async ({ page }) => {
+    // Risk accepted and documented: this sends a full logo URL so only the email is
+    // invalid. If email validation ever regressed, that logo would be saved.
     const branding = new BrandingPage(page);
     await branding.goto();
     await branding.logoUrl.fill('https://example.com/logo.png');
     await branding.contactEmail.fill('not-an-email');
+    const saved = page.waitForResponse((r) => r.url().endsWith('/api/branding') && r.request().method() === 'PUT');
     await branding.submit.click();
+    expect((await saved).status(), 'the invalid email should be refused').toBe(400);
     await expect(branding.error, 'the error should point at the email field').toContainText(/email/i);
   });
 });

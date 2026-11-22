@@ -1,22 +1,19 @@
 import { expect, test } from '../../src/fixtures';
 import { AdminNav } from '../../src/platform/pages/admin-nav';
 
-// After login the admin moves between four areas. Each link must land on its page.
+// After login the admin moves between four areas. Each test starts on a different
+// page from its target, so the click is what changes the page.
 test.describe('Platform UI: admin navigation', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/admin/rooms');
-  });
-
-  for (const [area, path] of [
-    ['report', /\/admin\/report$/],
-    ['branding', /\/admin\/branding$/],
-    ['messages', /\/admin\/message$/],
-    ['rooms', /\/admin\/rooms$/],
+  for (const { area, from, to } of [
+    { area: 'report', from: '/admin/rooms', to: /\/admin\/report$/ },
+    { area: 'branding', from: '/admin/rooms', to: /\/admin\/branding$/ },
+    { area: 'messages', from: '/admin/rooms', to: /\/admin\/message$/ },
+    { area: 'rooms', from: '/admin/report', to: /\/admin\/rooms$/ },
   ] as const) {
     test(`the ${area} link opens the ${area} page`, async ({ page }) => {
-      const nav = new AdminNav(page);
-      await nav[area].click();
-      await expect(page).toHaveURL(path);
+      await page.goto(from);
+      await new AdminNav(page)[area].click();
+      await expect(page).toHaveURL(to);
     });
   }
 });

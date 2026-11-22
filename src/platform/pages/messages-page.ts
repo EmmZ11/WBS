@@ -8,9 +8,13 @@ export class MessagesPage {
     this.viewer = page.getByRole('dialog');
   }
 
+  /** Opens the page and waits for the message list to load from the API. */
   async goto(): Promise<void> {
-    await this.page.goto('/admin/message');
-    await this.page.waitForResponse((r) => r.url().endsWith('/api/message') && r.request().method() === 'GET');
+    // Start waiting before navigating, so a fast response is not missed.
+    await Promise.all([
+      this.page.waitForResponse((r) => r.url().endsWith('/api/message') && r.request().method() === 'GET'),
+      this.page.goto('/admin/message'),
+    ]);
   }
 
   row(subject: string): Locator {

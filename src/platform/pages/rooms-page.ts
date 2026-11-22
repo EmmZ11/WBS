@@ -3,7 +3,7 @@ import type { Room } from '../data';
 
 /**
  * Admin Rooms page (/admin/rooms): room list and the create-room form.
- * The form inputs have no visible labels (RBP-14), so they are located by id.
+ * The form inputs have no labels (RBP-14), so they are located by id.
  */
 export class RoomsPage {
   readonly roomName: Locator;
@@ -19,30 +19,40 @@ export class RoomsPage {
     this.accessible = page.locator('#accessible');
     this.price = page.locator('#roomPrice');
     this.create = page.getByRole('button', { name: 'Create' });
-    // The error box is a plain .alert div (the page's role="alert" element is Next.js's route announcer).
+    // Error box is a .alert div. getByRole('alert') would also match Next.js's empty route announcer.
     this.error = page.locator('.alert').filter({ hasText: /\S/ });
   }
 
+  /** Opens the page and waits for the room list to load from the API. */
   async goto(): Promise<void> {
-    await this.page.goto('/admin/rooms');
+    await Promise.all([
+      this.page.waitForResponse((r) => r.url().endsWith('/api/room') && r.request().method() === 'GET'),
+      this.page.goto('/admin/rooms'),
+    ]);
   }
 
   /**
-   * Opens the Rooms page and waits for a room that was just created through the API.
-   * The list can lag behind the API for a moment, so the page is reloaded until the
-   * room shows. If it never shows (for example the demo site reset its data), the test
-   * stops here with a precondition message, so it is never mistaken for a product defect.
+   * Opens the page and waits for a room that was just created through the API.
+   * The list can lag behind the API, so the page is reloaded until the room shows.
+   * If it never shows (for example the demo reset its data), the test stops with a
+   * precondition message, so it is never mistaken for a product defect.
    */
-  async gotoWithRoom(roomName: string): Promise<void> {
+  async gotoWithRoom(roomid: number): Promise<void> {
     await this.goto();
     await expect(async () => {
       await this.page.reload();
-      await expect(this.row(roomName)).toBeVisible({ timeout: 3_000 });
-    }, `precondition: room "${roomName}" created through the API is not listed`).toPass({ timeout: 20_000 });
+      await expect(this.rowById(roomid)).toBeVisible({ timeout: 3_000 });
+    }, `precondition: room ${roomid} created through the API is not listed`).toPass({ timeout: 20_000 });
   }
 
+  /** Row by visible room name, as a user finds it. */
   row(roomName: string): Locator {
     return this.page.getByTestId('roomlisting').filter({ has: this.page.getByText(roomName, { exact: true }) });
+  }
+
+  /** Row by room id (each row has id="room{id}"), independent of how the name renders. */
+  rowById(roomid: number): Locator {
+    return this.page.locator(`[data-testid="roomlisting"]#room${roomid}`);
   }
 
   async createRoom(room: Room): Promise<void> {
@@ -54,11 +64,11 @@ export class RoomsPage {
     await this.create.click();
   }
 
-  async delete(roomName: string): Promise<void> {
-    await this.row(roomName).locator('.roomDelete').click();
+  async delete(roomid: number): Promise<void> {
+    await this.rowById(roomid).locator('.roomDelete').click();
   }
 
-  async open(roomName: string): Promise<void> {
-    await this.row(roomName).locator('p').first().click();
+  async open(roomid: number): Promise<void> {
+    await this.rowById(roomid).locator('p').first().click();
   }
 }

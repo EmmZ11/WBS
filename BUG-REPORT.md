@@ -2,7 +2,8 @@
 
 Every defect below was reproduced by hand during exploration, then encoded in an
 automated test that fails while the defect exists. The test name is given for each,
-so the evidence (trace, screenshot, request and response) is in the HTML report.
+so the evidence (error message with expected and actual values, page snapshot and,
+for UI tests, a screenshot) is in the HTML report.
 
 **Run used for this report:** GitHub Actions run
 [44955192025](https://github.com/EmmZ11/WBS/actions/runs/44955192025), commit `93aa3ad`,
@@ -162,7 +163,7 @@ can be saved unless the logo is also replaced with a full URL.
 **Actual:** 400 whose message includes Java class and method names
 (`org.springframework…ResponseEntity`, `com.automationintesting.api.BrandingController.updateBranding`,
 `java.sql.SQLException`). This tells an attacker the framework and code structure.
-**Test:** `Platform API: branding (admin) › an invalid email is refused without exposing server internals`
+**Test:** `Platform API: branding (admin) › validation errors do not expose server internals`
 
 ### RBP-12: Session token still works after logout
 **Severity:** High · **Layer:** API (and UI logout) · **OWASP:** A07 Authentication Failures
@@ -247,7 +248,7 @@ on status codes treat a failed login as a success. No token is issued, which is 
 **Steps:** `POST /booking` with `depositpaid: "yes"`.
 **Expected:** 400 (wrong type).
 **Actual:** 200; stored as `true`. Any non-empty value would record a deposit as paid.
-**Test:** `… › a non-boolean depositpaid is refused, not coerced`
+**Test:** `Restful Booker API: booking validation › a non-boolean depositpaid is refused, not coerced`
 
 ---
 

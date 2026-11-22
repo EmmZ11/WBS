@@ -1,12 +1,15 @@
 import { expect, test } from '../../src/fixtures';
 import { adminCredentials } from '../../src/config';
+import { readJson } from '../../src/utils/read-json';
 
 // OWASP A07 (identification and authentication failures): a session must end at logout.
 // Uses its own fresh login so the shared admin session is not affected.
 test.describe('Platform API: session handling', () => {
   test('a token stops working after logout', { annotation: { type: 'bug', description: 'RBP-12' } }, async ({ guestApi }) => {
     const { username, password } = adminCredentials();
-    const { token } = await (await guestApi.login(username, password)).json();
+    const login = await guestApi.login(username, password);
+    expect(login.status(), 'precondition: fresh login should succeed').toBe(200);
+    const { token } = await readJson<{ token: string }>(login);
     expect((await guestApi.validateToken(token)).status()).toBe(200);
 
     expect((await guestApi.logout(token)).status()).toBe(200);

@@ -1,6 +1,7 @@
 import { expect, test } from '../../src/fixtures';
 import { buildRoom } from '../../src/platform/data';
 import { RoomsPage } from '../../src/platform/pages/rooms-page';
+import { uniqueId } from '../../src/utils/unique-id';
 
 // Rooms: the test plan's main validation and functional risks.
 // UI outcomes are confirmed against the API, which is the source of truth.
@@ -12,8 +13,7 @@ test.describe('Platform UI: rooms', () => {
     await rooms.createRoom(room);
 
     await expect(rooms.row(room.roomName)).toBeVisible();
-    const stored = (await (await adminApi.listRooms()).json()).rooms;
-    expect(stored).toContainEqual(expect.objectContaining({
+    expect(await adminApi.readRooms()).toContainEqual(expect.objectContaining({
       roomName: room.roomName, type: 'Family', accessible: true, roomPrice: 175,
     }));
   });
@@ -44,29 +44,34 @@ test.describe('Platform UI: rooms', () => {
 
   test('opening a room shows its details', { annotation: { type: 'bug', description: 'RBP-06' } }, async ({ page, adminApi }) => {
     const room = buildRoom({ features: ['WiFi'] });
-    await adminApi.createRoomAndGetId(room);
+    const roomid = await adminApi.createRoomAndGetId(room);
     const rooms = new RoomsPage(page);
-    await rooms.gotoWithRoom(room.roomName);
-    await rooms.open(room.roomName);
-    await expect(page).toHaveURL(/\/admin\/room\/\d+$/);
-    await expect(page.getByText(room.roomName), 'RBP-06: the room page should show the room (GET /api/room/{id} returns 500)').toBeVisible();
+    await rooms.gotoWithRoom(roomid);
+    await rooms.open(roomid);
+    await expect(page).toHaveURL(new RegExp(`/admin/room/${roomid}$`));
+    await expect(page.getByText(room.roomName).first(), 'RBP-06: the room page should show the room (GET /api/room/{id} returns 500)').toBeVisible();
   });
 
   test('admin can delete a room', { annotation: { type: 'bug', description: 'RBP-05' } }, async ({ page, adminApi }) => {
-    const room = buildRoom();
-    await adminApi.createRoomAndGetId(room);
+    const roomid = await adminApi.createRoomAndGetId(buildRoom());
     const rooms = new RoomsPage(page);
-    await rooms.gotoWithRoom(room.roomName);
-    await rooms.delete(room.roomName);
-    await expect(rooms.row(room.roomName), 'RBP-05: the room should be removed (DELETE /api/room/{id} returns 500)').toBeHidden();
+    await rooms.gotoWithRoom(roomid);
+    await rooms.delete(roomid);
+    await expect(rooms.rowById(roomid), 'RBP-05: the room should leave the list (DELETE /api/room/{id} returns 500)').toBeHidden();
+    // Source of truth: the room must be gone from the API too, not just hidden in the UI.
+    expect((await adminApi.readRooms()).map((r) => r.roomid), 'RBP-05: the room is still stored').not.toContain(roomid);
   });
 
   test('a room name containing HTML is shown as text, not run as code', async ({ page, adminApi }) => {
     // OWASP A03 (injection / XSS), light check from the test plan.
-    const room = buildRoom({ roomName: `<img src=x onerror=window.__xss=1>${Date.now() % 100000}` });
-    await adminApi.createRoomAndGetId(room);
+    // The row is found by id, so it is found even if the name were rendered as HTML.
+    const roomName = `<img src=x onerror=window.__xss=1>QA${uniqueId()}`;
+    const roomid = await adminApi.createRoomAndGetId(buildRoom({ roomName }));
     const rooms = new RoomsPage(page);
-    await rooms.gotoWithRoom(room.roomName);
-    expect(await page.evaluate(() => (window as unknown as { __xss?: number }).__xss)).toBeUndefined();
+    await rooms.gotoWithRoom(roomid);
+    await expect(rooms.rowById(roomid), 'the name should be displayed literally').toContainText(roomName);
+    // Had the name been rendered as HTML, the row would contain an <img> element.
+    await expect(rooms.rowById(roomid).locator('img'), 'stored XSS: the name was rendered as HTML').toHaveCount(0);
+    expect(await page.evaluate(() => (window as { __xss?: number }).__xss), 'stored XSS: the injected script ran').toBeUndefined();
   });
 });

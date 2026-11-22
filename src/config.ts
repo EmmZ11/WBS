@@ -1,7 +1,12 @@
 import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+/** Project root, so paths work wherever the tests are started from. */
+const ROOT = resolve(__dirname, '..');
 
 // Load .env for local runs. In CI the same values come from GitHub secrets.
-if (existsSync('.env')) process.loadEnvFile('.env');
+const envFile = resolve(ROOT, '.env');
+if (existsSync(envFile)) process.loadEnvFile(envFile);
 
 /** Restful Booker Platform: admin UI and the API behind it (the test plan's main scope). */
 export const BASE_URL = process.env.BASE_URL ?? 'https://automationintesting.online';
@@ -10,9 +15,14 @@ export const BASE_URL = process.env.BASE_URL ?? 'https://automationintesting.onl
 export const BOOKER_BASE_URL = process.env.BOOKER_BASE_URL ?? 'https://restful-booker.herokuapp.com';
 
 /** Where the setup project saves the admin session (git-ignored). */
-export const ADMIN_STATE = 'playwright/.auth/admin.json';
+export const ADMIN_STATE = resolve(ROOT, 'playwright/.auth/admin.json');
 
-function required(userVar: string, passVar: string): { username: string; password: string } {
+interface Credentials {
+  username: string;
+  password: string;
+}
+
+function required(userVar: string, passVar: string): Credentials {
   const username = process.env[userVar];
   const password = process.env[passVar];
   if (!username || !password) {
@@ -21,5 +31,5 @@ function required(userVar: string, passVar: string): { username: string; passwor
   return { username, password };
 }
 
-export const adminCredentials = () => required('ADMIN_USERNAME', 'ADMIN_PASSWORD');
-export const bookerCredentials = () => required('BOOKER_USERNAME', 'BOOKER_PASSWORD');
+export const adminCredentials = (): Credentials => required('ADMIN_USERNAME', 'ADMIN_PASSWORD');
+export const bookerCredentials = (): Credentials => required('BOOKER_USERNAME', 'BOOKER_PASSWORD');

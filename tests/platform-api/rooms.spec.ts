@@ -1,26 +1,23 @@
 import { expect, test } from '../../src/fixtures';
-import { buildRoom } from '../../src/platform/data';
+import { buildRoom, type ValidationErrors } from '../../src/platform/data';
+import { readJson } from '../../src/utils/read-json';
 
 // Rooms are the core admin data: everything else (bookings, report) hangs off them.
-// Note: the demo site resets its data on a schedule, so rooms that cannot be
-// deleted (RBP-05) do not accumulate.
 test.describe('Platform API: rooms (admin)', () => {
   test('admin can create a room and it appears in the room list', async ({ adminApi }) => {
     const room = buildRoom({ type: 'Double', roomPrice: 150, features: ['WiFi', 'TV'] });
-    const response = await adminApi.createRoom(room);
-    expect(response.status()).toBe(200);
-
-    const { rooms } = await (await adminApi.listRooms()).json();
-    expect(rooms).toContainEqual(expect.objectContaining({
-      roomName: room.roomName, type: 'Double', roomPrice: 150, features: ['WiFi', 'TV'],
+    // The helper asserts the 200 and waits for the room to be listed.
+    const roomid = await adminApi.createRoomAndGetId(room);
+    expect(await adminApi.readRooms()).toContainEqual(expect.objectContaining({
+      roomid, roomName: room.roomName, type: 'Double', roomPrice: 150, features: ['WiFi', 'TV'],
     }));
   });
 
   test('an empty room is refused with errors that name the missing fields', { annotation: { type: 'bug', description: 'RBP-09' } }, async ({ adminApi }) => {
     const response = await adminApi.createRoom({});
     expect(response.status()).toBe(400);
-    const { errors } = await response.json();
-    const unnamed = (errors as string[]).filter((e) => !/room ?name|type|price|accessible|features/i.test(e));
+    const { errors } = await readJson<ValidationErrors>(response);
+    const unnamed = errors.filter((e) => !/room ?name|type|price|accessible|features/i.test(e));
     expect(unnamed, 'RBP-09: every error should name its field; these do not').toEqual([]);
   });
 
@@ -42,14 +39,13 @@ test.describe('Platform API: rooms (admin)', () => {
     const roomid = await adminApi.createRoomAndGetId(room);
     const response = await adminApi.updateRoom(roomid, { ...room, roomPrice: 199 });
     expect(response.status(), `RBP-06: PUT /api/room/${roomid} should update the room`).toBe(200);
+    expect(await adminApi.readRooms()).toContainEqual(expect.objectContaining({ roomid, roomPrice: 199 }));
   });
 
   test('admin can delete a room and it leaves the list', { annotation: { type: 'bug', description: 'RBP-05' } }, async ({ adminApi }) => {
-    const room = buildRoom();
-    const roomid = await adminApi.createRoomAndGetId(room);
+    const roomid = await adminApi.createRoomAndGetId(buildRoom());
     const response = await adminApi.deleteRoom(roomid);
     expect(response.ok(), `RBP-05: DELETE /api/room/${roomid} should succeed, got ${response.status()}`).toBe(true);
-    const { rooms } = await (await adminApi.listRooms()).json();
-    expect(rooms.map((r: { roomid: number }) => r.roomid)).not.toContain(roomid);
+    expect((await adminApi.readRooms()).map((r) => r.roomid)).not.toContain(roomid);
   });
 });

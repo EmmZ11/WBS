@@ -49,6 +49,7 @@ export default defineConfig({
       name: 'booker-api',
       testDir: './tests/booker-api',
       dependencies: ['booker-setup'],
+      use: { baseURL: BOOKER_BASE_URL },
     },
   ],
 });

@@ -1,7 +1,10 @@
 import { expect, test } from '../../src/fixtures';
-import { buildBookerBooking } from '../../src/booker/data';
+import { buildBookerBooking, type BookerBooking, type TokenResponse } from '../../src/booker/data';
+import { readJson } from '../../src/utils/read-json';
 
 // Changing or cancelling someone's booking must need a valid token (OWASP A01/A07).
+// Status codes: the apidoc documents 403 for refused writes, so that is what is expected.
+// It documents nothing for a failed login, so standard HTTP applies there (401).
 test.describe('Restful Booker API: authentication and authorisation', () => {
   test('bad credentials are refused with 401', { annotation: { type: 'bug', description: 'RB-05' } }, async ({ bookerApi }) => {
     const response = await bookerApi.createToken('not-a-user', 'not-a-password');
@@ -10,26 +13,28 @@ test.describe('Restful Booker API: authentication and authorisation', () => {
 
   test('bad credentials never return a token', async ({ bookerApi }) => {
     const response = await bookerApi.createToken('not-a-user', 'not-a-password');
-    expect((await response.json()).token).toBeUndefined();
+    expect((await readJson<TokenResponse>(response)).token).toBeUndefined();
   });
 
   test.describe('write operations without a valid token', () => {
+    let original: BookerBooking;
     let id = 0;
 
     test.beforeEach(async ({ bookerApi }) => {
-      id = (await (await bookerApi.createBooking(buildBookerBooking())).json()).bookingid;
+      original = buildBookerBooking();
+      id = await bookerApi.createBookingAndGetId(original);
     });
 
-    test.afterEach(async ({ bookerApi, bookerToken }) => {
-      await bookerApi.deleteBooking(id, bookerToken);
+    test('update without a token is forbidden and changes nothing', async ({ bookerApi }) => {
+      const response = await bookerApi.updateBooking(id, { ...original, totalprice: 1 });
+      expect(response.status()).toBe(403);
+      expect(await readJson<BookerBooking>(await bookerApi.getBooking(id))).toEqual(original);
     });
 
-    test('update without a token is forbidden', async ({ bookerApi }) => {
-      expect((await bookerApi.updateBooking(id, buildBookerBooking())).status()).toBe(403);
-    });
-
-    test('update with a forged token is forbidden', async ({ bookerApi }) => {
-      expect((await bookerApi.updateBooking(id, buildBookerBooking(), 'forged')).status()).toBe(403);
+    test('update with a forged token is forbidden and changes nothing', async ({ bookerApi }) => {
+      const response = await bookerApi.updateBooking(id, { ...original, totalprice: 1 }, 'forged');
+      expect(response.status()).toBe(403);
+      expect(await readJson<BookerBooking>(await bookerApi.getBooking(id))).toEqual(original);
     });
 
     test('delete without a token is forbidden and the booking survives', async ({ bookerApi }) => {

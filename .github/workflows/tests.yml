@@ -2,6 +2,7 @@ name: tests
 
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -16,16 +17,11 @@ jobs:
   playwright:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      CI: true
-      ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
-      ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-      BOOKER_USERNAME: ${{ secrets.BOOKER_USERNAME }}
-      BOOKER_PASSWORD: ${{ secrets.BOOKER_PASSWORD }}
     steps:
-      - uses: actions/checkout@v7
+      # Actions are pinned to commit SHAs (the version is in the comment).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -33,18 +29,29 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-
+      # Cheap checks first: no browser download if the code does not compile or lint.
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
       - name: Run all test projects
+        # Credentials are only visible to this step.
+        env:
+          CI: true
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          BOOKER_USERNAME: ${{ secrets.BOOKER_USERNAME }}
+          BOOKER_PASSWORD: ${{ secrets.BOOKER_PASSWORD }}
         run: npx playwright test
 
       - name: Upload HTML report
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report
           path: playwright-report/
@@ -52,7 +59,7 @@ jobs:
 
       - name: Upload JUnit results
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: junit-results
           path: test-results/junit.xml
@@ -62,10 +69,17 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           node -e '
-            const x = require("fs").readFileSync("test-results/junit.xml", "utf8");
+            const fs = require("fs");
+            const file = "test-results/junit.xml";
+            if (!fs.existsSync(file)) {
+              fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, "### Test results\n\nNo results: the tests did not run.\n");
+              process.exit(0);
+            }
+            const x = fs.readFileSync(file, "utf8");
             const a = (n) => Number((x.match(new RegExp(`<testsuites[^>]* ${n}="([0-9]+)"`)) || [])[1] || 0);
-            const lines = ["### Test results", "", "| Total | Failed | Skipped | Errors |", "|---|---|---|---|",
-              `| ${a("tests")} | ${a("failures")} | ${a("skipped")} | ${a("errors")} |`, "",
+            const lines = ["### Test results", "", "| Total | Failed | Errors | Skipped |", "|---|---|---|---|",
+              `| ${a("tests")} | ${a("failures")} | ${a("errors")} | ${a("skipped")} |`, "",
+              "Failures are expected: each one is a defect listed in BUG-REPORT.md.",
               "Full HTML report: download the playwright-report artifact from this run."];
-            require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
           '

@@ -132,14 +132,14 @@ Bug IDs link to [BUG-REPORT.md](BUG-REPORT.md).
 | G1 | Branding can be read with all the form's fields | + | API | P2 | Baseline | |
 | G2 | Form shows the branding stored in the API | + | UI | P2 | UI–API parity | |
 | G3 | Saving the current branding unchanged succeeds | + | API, UI | P2 | The site's own data is rejected | RBP-10 |
-| G4 | Invalid email is refused with an email message | − | UI | P2 | Validation feedback | |
+| G4 | Invalid email is refused, naming the email field | − | API, UI | P2 | Validation feedback | |
 | G5 | Validation errors do not expose server internals | S | API | P2 | Information disclosure (A05) | RBP-11 |
 
 ### 5.7 Messages
 
 | # | Scenario | Type | Layer | Priority | Why | Bug |
 |---|---|---|---|---|---|---|
-| M1 | New message appears in the admin list as unread | + | API, UI | P1 | Admin must see enquiries | |
+| M1 | New message appears in the admin list (API: as unread) | + | API, UI | P1 | Admin must see enquiries | |
 | M2 | Opening a message shows its full text | + | API, UI | P1 | My finding: 500 on open | RBP-07 |
 | M3 | Admin can mark a message as read | + | API | P2 | Inbox management | RBP-07 |
 
