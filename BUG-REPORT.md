@@ -7,21 +7,21 @@ so the evidence (error message with expected and actual values, page snapshot an
 for UI tests, a screenshot) is in the HTML report.
 
 **Run used for this report:** GitHub Actions run
-[45005162876](https://github.com/EmmZ11/WBS/actions/runs/45005162876), commit `9fc8a6c`,
+[45010769154](https://github.com/EmmZ11/WBS/actions/runs/45010769154), commit `aad1192`,
 22 November 2026. The HTML report of that run is committed in [report/](report/index.html).
 
 | Tests | Passed | Failed | Flaky | Skipped |
 |---|---|---|---|---|
-| 79 (77 tests + 2 login setups) | 46 | 33 | 0 | 0 |
+| 103 (101 tests + 2 login setups) | 62 | 41 | 0 | 0 |
 
-All 33 failures are the defects below, each failing on its own bug assertion; no test
-failed for any other reason. A local run on the same commit gave the same result.
+All 41 failures are the defects below, each failing on its own bug assertion; no test
+failed for any other reason.
 
 | Project | Failures | Bugs |
 |---|---|---|
 | platform-api | 15 | RBP-01, 02, 03, 05, 06, 07, 08, 09, 10, 11, 12 |
 | platform-ui | 12 | RBP-02, 04, 05, 06, 07, 09, 10, 13, 14, 15 |
-| booker-api | 6 | RB-01 to RB-06 |
+| booker-api | 14 | RB-01 to RB-11 (RB-12 is a documentation finding, not automated) |
 
 ## Severity
 
