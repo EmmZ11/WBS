@@ -74,140 +74,140 @@ task, but a developer should start by looking at id-route handling.
 ## Restful Booker Platform (admin)
 
 ### RBP-01: Guest messages can be listed without logging in
-**Severity:** High · **Layer:** API · **OWASP:** A01 Broken Access Control
-**Steps:** Without logging in, send `GET /api/message`.
-**Expected:** 401, because messages belong to the admin-only Messages page.
-**Actual:** 200, with every message's sender name and subject.
-**Impact:** Personal data (guest names and what they wrote about) is public.
+**Severity:** High · **Layer:** API · **OWASP:** A01 Broken Access Control \
+**Steps:** Without logging in, send `GET /api/message`. \
+**Expected:** 401, because messages belong to the admin-only Messages page. \
+**Actual:** 200, with every message's sender name and subject. \
+**Impact:** Personal data (guest names and what they wrote about) is public. \
 **Test:** `Platform API: access control without a session › cannot list guest messages`
 
 ### RBP-02: Booking validation errors do not say which field is wrong
-**Severity:** Medium · **Layer:** API and UI (Report booking dialog)
-**Steps:** In Report, select dates, leave the form empty and click Book.
-**Expected:** Each error names its field, ideally next to that field.
+**Severity:** Medium · **Layer:** API and UI (Report booking dialog) \
+**Steps:** In Report, select dates, leave the form empty and click Book. \
+**Expected:** Each error names its field, ideally next to that field. \
 **Actual:** One block of raw API messages. Some name a field ("Firstname should not
 be blank"); others do not ("size must be between 3 and 18", "size must be between
-3 and 30", "must be greater than or equal to 1"). The admin cannot tell which input is wrong.
+3 and 30", "must be greater than or equal to 1"). The admin cannot tell which input is wrong. \
 **Tests:** `Platform API: booking validation › validation errors name the field at fault`;
 `Platform UI: report and booking › booking with empty fields says which fields are wrong`
 
 ### RBP-03: Invalid booking dates return 409 Conflict instead of 400
-**Severity:** Low · **Layer:** API
-**Steps:** `POST /api/booking` with checkout earlier than checkin.
-**Expected:** 400 with a message such as "checkout must be after checkin".
+**Severity:** Low · **Layer:** API \
+**Steps:** `POST /api/booking` with checkout earlier than checkin. \
+**Expected:** 400 with a message such as "checkout must be after checkin". \
 **Actual:** 409 `{"error":"Failed to create booking"}`. 409 also means "dates already
-booked", so the admin cannot tell bad input from a real clash.
+booked", so the admin cannot tell bad input from a real clash. \
 **Test:** `Platform API: booking validation › checkout before checkin is rejected as a validation error (400)`
 
 ### RBP-04: Logout button shown before logging in
-**Severity:** Low · **Layer:** UI
-**Steps:** Open `/admin` without a session.
-**Expected:** Only the login form; no Logout option.
-**Actual:** The navigation shows a Logout button.
+**Severity:** Low · **Layer:** UI \
+**Steps:** Open `/admin` without a session. \
+**Expected:** Only the login form; no Logout option. \
+**Actual:** The navigation shows a Logout button. \
 **Test:** `Platform UI: admin login › Logout is not offered before logging in`
 
 ### RBP-05: Rooms cannot be deleted
-**Severity:** High · **Layer:** UI and API
-**Steps:** In Rooms, click the delete (×) icon on a room.
-**Expected:** The room is removed from the list and from the API.
+**Severity:** High · **Layer:** UI and API \
+**Steps:** In Rooms, click the delete (×) icon on a room. \
+**Expected:** The room is removed from the list and from the API. \
 **Actual:** `DELETE /api/room/{id}` returns 500. The room stays and the UI shows no
-error. Without a login the same call also returns 500 instead of 401.
+error. Without a login the same call also returns 500 instead of 401. \
 **Tests:** `Platform UI: rooms › admin can delete a room`;
 `Platform API: rooms (admin) › admin can delete a room and it leaves the list`;
 `Platform API: access control without a session › cannot delete a room (401, not a server error)`
 
 ### RBP-06: Room page is blank; rooms cannot be read or edited
-**Severity:** High · **Layer:** UI and API
-**Steps:** In Rooms, click a room to open its page.
-**Expected:** The room's name, type, price, features and bookings, with Edit.
+**Severity:** High · **Layer:** UI and API \
+**Steps:** In Rooms, click a room to open its page. \
+**Expected:** The room's name, type, price, features and bookings, with Edit. \
 **Actual:** `GET /api/room/{id}` returns 500. The page shows empty labels and
 "No features added to the room" even when features were set. `PUT /api/room/{id}`
-also returns 500, so rooms cannot be edited.
+also returns 500, so rooms cannot be edited. \
 **Tests:** `Platform UI: rooms › opening a room shows its details`;
 `Platform API: rooms (admin) › admin can read a single room`; `… › admin can update a room`
 
 ### RBP-07: Messages cannot be opened or marked as read
-**Severity:** High · **Layer:** UI and API
-**Steps:** In Messages, click a message.
-**Expected:** The message opens with its full text, and is marked as read.
+**Severity:** High · **Layer:** UI and API \
+**Steps:** In Messages, click a message. \
+**Expected:** The message opens with its full text, and is marked as read. \
 **Actual:** `GET /api/message/{id}` returns 500 and nothing opens. `PUT /api/message/{id}/read`
-also returns 500. Admin can see that a message exists but never read it.
+also returns 500. Admin can see that a message exists but never read it. \
 **Tests:** `Platform UI: messages › opening a message shows its full text`;
 `Platform API: messages (admin) › admin can open a message and read its full text`; `… › admin can mark a message as read`
 
 ### RBP-08: Bookings cannot be read or cancelled by id
-**Severity:** High · **Layer:** API
-**Steps:** Create a booking, then `GET` or `DELETE /api/booking/{id}`.
-**Expected:** 200 with the booking; the delete removes it.
-**Actual:** 500 for both. A booking cannot be cancelled.
+**Severity:** High · **Layer:** API \
+**Steps:** Create a booking, then `GET` or `DELETE /api/booking/{id}`. \
+**Expected:** 200 with the booking; the delete removes it. \
+**Actual:** 500 for both. A booking cannot be cancelled. \
 **Tests:** `Platform API: bookings (admin) › admin can read a booking by id`; `… › admin can cancel a booking`
 
 ### RBP-09: Room form: nothing marked required, errors do not name fields
-**Severity:** Medium · **Layer:** UI and API
-**Steps:** In Rooms, click Create with the form empty.
-**Expected:** Required fields are marked; the error says which are missing.
+**Severity:** Medium · **Layer:** UI and API \
+**Steps:** In Rooms, click Create with the form empty. \
+**Expected:** Required fields are marked; the error says which are missing. \
 **Actual:** No field is marked required. The UI shows only "Failed to create room".
 The API, sent an empty room directly, names some fields ("Room name must be set")
-but not others ("must not be null", "must be greater than or equal to 1").
+but not others ("must not be null", "must be greater than or equal to 1"). \
 **Tests:** `Platform UI: rooms › submitting an empty form says which fields are missing`;
 `… › required fields are marked as required`;
 `Platform API: rooms (admin) › an empty room is refused with errors that name the missing fields`
 
 ### RBP-10: Branding cannot be saved with the site's own data
-**Severity:** Medium · **Layer:** UI and API
-**Steps:** Open Branding and click Submit without changing anything.
-**Expected:** Saved.
+**Severity:** Medium · **Layer:** UI and API \
+**Steps:** Open Branding and click Submit without changing anything. \
+**Expected:** Saved. \
 **Actual:** 400; the UI shows "Url should be a correct url format". The site's own
 logo value, `/images/rbp-logo.jpg`, fails the API's URL rule, so no branding change
-can be saved unless the logo is also replaced with a full URL.
+can be saved unless the logo is also replaced with a full URL. \
 **Tests:** `Platform UI: branding › submitting the form unchanged saves`;
 `Platform API: branding (admin) › saving the current branding unchanged succeeds`
 
 ### RBP-11: Branding errors expose server internals
-**Severity:** Medium · **Layer:** API · **OWASP:** A05 Security Misconfiguration
-**Steps:** `PUT /api/branding` with an invalid email.
-**Expected:** 400 with a short, field-level message.
+**Severity:** Medium · **Layer:** API · **OWASP:** A05 Security Misconfiguration \
+**Steps:** `PUT /api/branding` with an invalid email. \
+**Expected:** 400 with a short, field-level message. \
 **Actual:** 400 whose message includes Java class and method names
 (`org.springframework…ResponseEntity`, `com.automationintesting.api.BrandingController.updateBranding`,
-`java.sql.SQLException`). This tells an attacker the framework and code structure.
+`java.sql.SQLException`). This tells an attacker the framework and code structure. \
 **Test:** `Platform API: branding (admin) › validation errors do not expose server internals`
 
 ### RBP-12: Session token still works after logout
-**Severity:** High · **Layer:** API (and UI logout) · **OWASP:** A07 Authentication Failures
+**Severity:** High · **Layer:** API (and UI logout) · **OWASP:** A07 Authentication Failures \
 **Steps:** Log in, note the token, log out (UI button or `POST /api/auth/logout`),
-then use the token.
-**Expected:** The token is rejected after logout.
+then use the token. \
+**Expected:** The token is rejected after logout. \
 **Actual:** `POST /api/auth/validate` still returns 200, and the token can still
-create rooms. Logout only deletes the browser cookie.
-**Impact:** A stolen or leftover token stays valid indefinitely.
+create rooms. Logout only deletes the browser cookie. \
+**Impact:** A stolen or leftover token stays valid indefinitely. \
 **Test:** `Platform API: session handling › a token stops working after logout`
 
 ### RBP-13: Session cookie is not HttpOnly or Secure
-**Severity:** Medium · **Layer:** UI · **OWASP:** A05 Security Misconfiguration
-**Steps:** Log in and inspect the `token` cookie.
-**Expected:** `HttpOnly` and `Secure` are set.
+**Severity:** Medium · **Layer:** UI · **OWASP:** A05 Security Misconfiguration \
+**Steps:** Log in and inspect the `token` cookie. \
+**Expected:** `HttpOnly` and `Secure` are set. \
 **Actual:** Neither is set. The cookie is written by page JavaScript, so any script
 on the page can read the admin token (made worse by RBP-12), and the browser may
-send it over plain HTTP.
+send it over plain HTTP. \
 **Test:** `Platform UI: admin login › the session cookie is protected from scripts and plain HTTP`
 
 ### RBP-14: Room form inputs and booking dialog lack accessible names
-**Severity:** Low · **Layer:** UI · **Standard:** WCAG 2.2 (1.3.1, 4.1.2)
-**Steps:** Inspect the Rooms create form and the Report booking dialog with a screen reader.
-**Expected:** Each input has a label; the dialog has a meaningful name.
+**Severity:** Low · **Layer:** UI · **Standard:** WCAG 2.2 (1.3.1, 4.1.2) \
+**Steps:** Inspect the Rooms create form and the Report booking dialog with a screen reader. \
+**Expected:** Each input has a label; the dialog has a meaningful name. \
 **Actual:** Room name and price inputs have no label. The booking dialog is announced
-as "onRequestClose Example", leftover sample text from a component library.
+as "onRequestClose Example", leftover sample text from a component library. \
 **Tests:** `Platform UI: rooms › form inputs have accessible labels`;
 `Platform UI: report and booking › the booking dialog has a meaningful accessible name`
 
 ### RBP-15: A successful booking is reported to the admin as failed
-**Severity:** High · **Layer:** UI (Report)
-**Steps:** In Report, select free dates, fill in the guest names, choose a room, click Book.
-**Expected:** The dialog closes and the booking appears.
+**Severity:** High · **Layer:** UI (Report) \
+**Steps:** In Report, select free dates, fill in the guest names, choose a room, click Book. \
+**Expected:** The dialog closes and the booking appears. \
 **Actual:** `POST /api/booking` returns 201 and the booking is stored, but the dialog
-stays open and shows "Failed to create booking". Happens for any room.
+stays open and shows "Failed to create booking". Happens for any room. \
 **Impact:** The admin retries. The retry then fails with 409 because the first
-attempt did succeed, which explains the 409 seen during exploration.
+attempt did succeed, which explains the 409 seen during exploration. \
 **Test:** `Platform UI: report and booking › admin can book a room from the calendar: stored and confirmed`
 
 ---
@@ -215,102 +215,103 @@ attempt did succeed, which explains the 409 seen during exploration.
 ## Restful Booker API (Option A)
 
 ### RB-01: Missing required field crashes with 500
-**Severity:** Medium
-**Steps:** `POST /booking` without `lastname`.
-**Expected:** 400 naming the missing field.
-**Actual:** 500 Internal Server Error, with no detail. An empty body does the same.
+**Severity:** Medium \
+**Steps:** `POST /booking` without `lastname`. \
+**Expected:** 400 naming the missing field. \
+**Actual:** 500 Internal Server Error, with no detail. An empty body does the same. \
 **Test:** `Restful Booker API: booking validation › missing required field (lastname) is a 400, not a server error`
 
 ### RB-02: Checkout before checkin is accepted
-**Severity:** Medium
-**Steps:** `POST /booking` with checkin 2027-06-10 and checkout 2027-06-05.
-**Expected:** 400.
-**Actual:** 200; the impossible stay is stored.
+**Severity:** Medium \
+**Steps:** `POST /booking` with checkin 2027-06-10 and checkout 2027-06-05. \
+**Expected:** 400. \
+**Actual:** 200; the impossible stay is stored. \
 **Test:** `Restful Booker API: booking validation › checkout before checkin is refused`
 
 ### RB-03: Invalid date is stored as `0NaN-aN-aN`
-**Severity:** Medium
-**Steps:** `POST /booking` with `checkin: "not-a-date"`.
-**Expected:** 400.
-**Actual:** 200; the booking is stored with checkin `0NaN-aN-aN`.
+**Severity:** Medium \
+**Steps:** `POST /booking` with `checkin: "not-a-date"`. \
+**Expected:** 400. \
+**Actual:** 200; the booking is stored with checkin `0NaN-aN-aN`. \
 **Test:** `Restful Booker API: booking validation › an invalid date is refused`
 
 ### RB-04: Negative total price is accepted
-**Severity:** Medium
-**Steps:** `POST /booking` with `totalprice: -50`.
-**Expected:** 400.
-**Actual:** 200; stored with a price of −50.
+**Severity:** Medium \
+**Steps:** `POST /booking` with `totalprice: -50`. \
+**Expected:** 400. \
+**Actual:** 200; stored with a price of −50. \
 **Test:** `Restful Booker API: booking validation › a negative total price is refused`
 
 ### RB-05: Bad credentials return 200 instead of 401
-**Severity:** Medium · **OWASP:** A07
-**Steps:** `POST /auth` with a wrong username and password.
-**Expected:** 401.
+**Severity:** Medium · **OWASP:** A07 \
+**Steps:** `POST /auth` with a wrong username and password. \
+**Expected:** 401. \
 **Actual:** 200 with `{"reason":"Bad credentials"}`. Clients and monitoring that rely
-on status codes treat a failed login as a success. No token is issued, which is correct.
+on status codes treat a failed login as a success. No token is issued, which is correct. \
 **Test:** `Restful Booker API: authentication › bad credentials are refused with 401`
 
 ### RB-06: Non-boolean deposit flag is silently converted to true
-**Severity:** Low
-**Steps:** `POST /booking` with `depositpaid: "yes"`.
-**Expected:** 400 (wrong type).
+**Severity:** Low \
+**Steps:** `POST /booking` with `depositpaid: "yes"`. \
+**Expected:** 400 (wrong type). \
 **Actual:** 200; stored as `true`. A wrong type silently becomes "deposit paid".
-(Only `"yes"` was tested.)
+(Only `"yes"` was tested.) \
 **Test:** `Restful Booker API: booking validation › a non-boolean depositpaid is refused, not coerced`
 
 ### RB-07: Check-in filter leaves out bookings that start on the given date
-**Severity:** Medium
-**Steps:** Create a booking with checkin 2031-03-10, then `GET /booking?checkin=2031-03-10`.
+**Severity:** Medium \
+**Steps:** Create a booking with checkin 2031-03-10, then `GET /booking?checkin=2031-03-10`. \
 **Expected:** The booking is returned. The apidoc says the filter returns bookings with
-checkin "greater than or equal to" the date.
+checkin "greater than or equal to" the date. \
 **Actual:** It is not returned; `checkin=2031-03-09` does return it. The filter is
-"greater than", so searching for today's arrivals misses all of them.
+"greater than", so searching for today's arrivals misses all of them. \
 **Test:** `Restful Booker API: searching bookings › checkin filter includes a booking that starts on the given date`
 
 ### RB-08: Check-out filter works the wrong way round
-**Severity:** Medium
+**Severity:** Medium \
 **Steps:** Create a booking with checkout 2031-03-14, then search with `checkout=2031-03-13`
-and with `checkout=2031-03-15`.
+and with `checkout=2031-03-15`. \
 **Expected:** Returned for 03-13 (it ends after that date) and not for 03-15, per the
-apidoc's "greater than or equal to".
+apidoc's "greater than or equal to". \
 **Actual:** The opposite: not returned for 03-13, returned for 03-15. The filter returns
-bookings ending on or before the date.
+bookings ending on or before the date. \
 **Tests:** `Restful Booker API: searching bookings › checkout filter includes a booking that ends after the given date`;
 `Restful Booker API: searching bookings › checkout filter excludes a booking that ends before the given date`
 
 ### RB-09: Invalid date in a search filter crashes with 500
-**Severity:** Medium
-**Steps:** `GET /booking?checkin=not-a-date`.
-**Expected:** 400 saying the date format is wrong (the apidoc requires CCYY-MM-DD).
-**Actual:** 500 Internal Server Error.
+**Severity:** Medium \
+**Steps:** `GET /booking?checkin=not-a-date`. \
+**Expected:** 400 saying the date format is wrong (the apidoc requires CCYY-MM-DD). \
+**Actual:** 500 Internal Server Error. \
 **Test:** `Restful Booker API: searching bookings › an invalid filter date is refused with 400, not a server error`
 
 ### RB-10: Changing a booking that does not exist returns 405 instead of 404
-**Severity:** Low
+**Severity:** Low \
 **Steps:** With a valid token, send `PUT`, `PATCH` or `DELETE` to `/booking/999999999`
-(or delete the same booking twice).
-**Expected:** 404 Not Found, as `GET` on the same id returns.
+(or delete the same booking twice). \
+**Expected:** 404 Not Found, as `GET` on the same id returns. \
 **Actual:** 405 Method Not Allowed, which tells a client the method is unsupported,
-not that the booking is missing.
+not that the booking is missing. \
 **Tests:** `Restful Booker API: booking that does not exist › updating it returns 404`;
 `… › partially updating it returns 404`; `… › deleting it returns 404`
 
 ### RB-11: XML responses are labelled as HTML
-**Severity:** Low
-**Steps:** `GET /booking/{id}` with `Accept: application/xml` (also `POST /booking` with an XML body).
-**Expected:** An XML body with `Content-Type: application/xml`.
+**Severity:** Low \
+**Steps:** `GET /booking/{id}` with `Accept: application/xml` (also `POST /booking` with an XML body). \
+**Expected:** An XML body with `Content-Type: application/xml`. \
 **Actual:** The body is correct XML, but `Content-Type` is `text/html`, so clients that
-honour the header will mis-parse it.
+honour the header will mis-parse it. \
 **Test:** `Restful Booker API: request and response formats › a booking can be read as XML, with an XML content type`
 
 ### RB-12: API documentation errors
-**Severity:** Low · **Found by:** reading the apidoc (not automated)
+**Severity:** Low · **Found by:** reading the apidoc (not automated) \
 **Found:**
 - PartialUpdateBooking's example request is `curl -X PUT`; the endpoint is `PATCH`.
   Copying the example sends a full update, which then fails with 400.
 - DeleteBooking lists its result under "Success 200" but the response shown, and the
   real one, is `201 Created`. 201 means "a resource was created", which is wrong for a delete.
-**Expected:** Examples and status codes that match the API's behaviour.
+
+**Expected:** Examples and status codes that match the API's behaviour. \
 **Note:** the tests follow the documented 201 for delete, as stated in DECISIONS.md.
 
 ---
