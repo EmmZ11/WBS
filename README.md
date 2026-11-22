@@ -30,7 +30,7 @@ product finding; re-run the job.
 |---|---|---|
 | `platform-ui` | Admin UI: login, navigation, Rooms, Report, Branding, Messages | 27 |
 | `platform-api` | The API behind the admin UI: auth, access control, rooms, bookings, branding, messages, session | 36 |
-| `booker-api` | Restful Booker API (Option A): booking lifecycle, auth, validation | 14 |
+| `booker-api` | Restful Booker API (Option A): every documented endpoint and option: lifecycle, both auth methods, search filters, formats, validation | 38 |
 
 Two setup projects run first: `setup` logs in to the platform once and saves the
 session; `booker-setup` checks the Option A login works (tokens are then created

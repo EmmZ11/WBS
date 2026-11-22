@@ -145,19 +145,35 @@ Bug IDs link to [BUG-REPORT.md](BUG-REPORT.md).
 
 ### 5.8 Option A: Restful Booker API
 
+Every endpoint and every option in the apidoc is covered at least once: the 8
+endpoints, both write-authorisation methods (token cookie, Basic auth), the four
+search filters, and the three body formats (JSON, XML, URL-encoded).
+
 | # | Scenario | Type | Priority | Why | Bug |
 |---|---|---|---|---|---|
-| O1 | Health check responds | + | P2 | Fail fast if the service is down | |
+| O1 | Health check responds (201, as documented) | + | P2 | Fail fast if the service is down | |
 | O2 | Guest creates a booking and reads it back | + | P1 | Core flow | |
-| O3 | Create, find by name, update, patch, delete, then 404 | + | P1 | Full lifecycle in one flow | |
-| O4 | Unknown booking returns 404 | − | P2 | Correct status | |
+| O3 | Create, find by name, update, patch, delete (token cookie), then 404 | + | P1 | Full lifecycle in one flow | |
+| O4 | Valid credentials return a token | + | P1 | Gate to every write | |
 | O5 | Bad credentials refused with 401 and no token | − S | P1 | Auth (A07) | RB-05 |
-| O6 | Update or delete without, or with a forged, token is forbidden | S | P1 | Bookings belong to someone (A01) | |
-| O7 | Missing required field is 400, not 500 | − | P2 | Server error on bad input | RB-01 |
-| O8 | Checkout before checkin is refused | − | P2 | Impossible stay is stored | RB-02 |
-| O9 | Invalid date is refused | − | P2 | Stored as `0NaN-aN-aN` | RB-03 |
-| O10 | Negative total price is refused | B | P2 | Money field boundary | RB-04 |
-| O11 | Non-boolean deposit flag is refused, not coerced | − | P3 | Silent data change | RB-06 |
+| O6 | Update, patch and delete with no auth, a forged token or wrong Basic credentials are forbidden; booking unchanged | S | P1 | Bookings belong to someone (A01) | |
+| O7 | Update, patch and delete work with Basic auth | + | P1 | Documented alternative to the token | |
+| O8 | Full update (PUT) with missing fields is refused, booking unchanged | − | P2 | PUT replaces the whole booking | |
+| O9 | All booking ids are returned without a filter | + | P2 | Search baseline | |
+| O10 | Filter by name returns only that booking | + | P1 | Finding a guest's booking | |
+| O11 | Check-in filter: day before includes, same day includes, day after excludes | B | P2 | Documented "greater than or equal" | RB-07 |
+| O12 | Check-out filter: day before includes, same day includes, day after excludes | B | P2 | Documented "greater than or equal" | RB-08 |
+| O13 | Invalid filter date is refused with 400 | − | P2 | Server error on bad input | RB-09 |
+| O14 | Reading a booking that does not exist returns 404 | − | P2 | Correct status | |
+| O15 | Updating, patching or deleting a booking that does not exist returns 404 | − | P3 | Correct status | RB-10 |
+| O16 | Booking can be read as XML, with an XML content type | + | P3 | Documented format | RB-11 |
+| O17 | Booking can be created with an XML body and with a URL-encoded body | + | P3 | Documented formats | |
+| O18 | Missing required field is 400, not 500 | − | P2 | Server error on bad input | RB-01 |
+| O19 | Checkout before checkin is refused | − | P2 | Impossible stay is stored | RB-02 |
+| O20 | Invalid date is refused | − | P2 | Stored as `0NaN-aN-aN` | RB-03 |
+| O21 | Negative total price is refused | B | P2 | Money field boundary | RB-04 |
+| O22 | Non-boolean deposit flag is refused, not coerced | − | P3 | Silent data change | RB-06 |
+| — | Documentation matches behaviour (reviewed by hand) | − | P3 | Wrong examples mislead integrators | RB-12 |
 
 ## 6. What was deliberately not automated
 

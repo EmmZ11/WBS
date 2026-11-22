@@ -1,7 +1,8 @@
 # Bug Report
 
 Every defect below was reproduced by hand during exploration, then encoded in an
-automated test that fails while the defect exists. The test name is given for each,
+automated test that fails while the defect exists (except RB-12, a documentation
+error found by reading the apidoc). The test name is given for each,
 so the evidence (error message with expected and actual values, page snapshot and,
 for UI tests, a screenshot) is in the HTML report.
 
@@ -55,6 +56,12 @@ failed for any other reason. A local run on the same commit gave the same result
 | RB-04 | Negative total price is accepted | Medium | Option A: validation |
 | RB-05 | Bad credentials return 200 instead of 401 | Medium | Option A: auth |
 | RB-06 | Non-boolean deposit flag is silently converted to true | Low | Option A: validation |
+| RB-07 | Check-in filter leaves out bookings that start on the given date | Medium | Option A: search |
+| RB-08 | Check-out filter works the wrong way round | Medium | Option A: search |
+| RB-09 | Invalid date in a search filter crashes with 500 | Medium | Option A: search |
+| RB-10 | Changing a booking that does not exist returns 405 instead of 404 | Low | Option A: errors |
+| RB-11 | XML responses are labelled as HTML | Low | Option A: formats |
+| RB-12 | API documentation errors (PATCH example, delete status) | Low | Option A: docs (manual) |
 
 **Likely common cause (RBP-05 to RBP-08):** every platform API route that takes an
 id (`/api/room/{id}`, `/api/booking/{id}`, `/api/message/{id}`) returns
@@ -219,21 +226,21 @@ attempt did succeed, which explains the 409 seen during exploration.
 **Steps:** `POST /booking` with checkin 2027-06-10 and checkout 2027-06-05.
 **Expected:** 400.
 **Actual:** 200; the impossible stay is stored.
-**Test:** `… › checkout before checkin is refused`
+**Test:** `Restful Booker API: booking validation › checkout before checkin is refused`
 
 ### RB-03: Invalid date is stored as `0NaN-aN-aN`
 **Severity:** Medium
 **Steps:** `POST /booking` with `checkin: "not-a-date"`.
 **Expected:** 400.
 **Actual:** 200; the booking is stored with checkin `0NaN-aN-aN`.
-**Test:** `… › an invalid date is refused`
+**Test:** `Restful Booker API: booking validation › an invalid date is refused`
 
 ### RB-04: Negative total price is accepted
 **Severity:** Medium
 **Steps:** `POST /booking` with `totalprice: -50`.
 **Expected:** 400.
 **Actual:** 200; stored with a price of −50.
-**Test:** `… › a negative total price is refused`
+**Test:** `Restful Booker API: booking validation › a negative total price is refused`
 
 ### RB-05: Bad credentials return 200 instead of 401
 **Severity:** Medium · **OWASP:** A07
@@ -241,14 +248,70 @@ attempt did succeed, which explains the 409 seen during exploration.
 **Expected:** 401.
 **Actual:** 200 with `{"reason":"Bad credentials"}`. Clients and monitoring that rely
 on status codes treat a failed login as a success. No token is issued, which is correct.
-**Test:** `Restful Booker API: authentication and authorisation › bad credentials are refused with 401`
+**Test:** `Restful Booker API: authentication › bad credentials are refused with 401`
 
 ### RB-06: Non-boolean deposit flag is silently converted to true
 **Severity:** Low
 **Steps:** `POST /booking` with `depositpaid: "yes"`.
 **Expected:** 400 (wrong type).
-**Actual:** 200; stored as `true`. Any non-empty value would record a deposit as paid.
+**Actual:** 200; stored as `true`. A wrong type silently becomes "deposit paid".
+(Only `"yes"` was tested.)
 **Test:** `Restful Booker API: booking validation › a non-boolean depositpaid is refused, not coerced`
+
+### RB-07: Check-in filter leaves out bookings that start on the given date
+**Severity:** Medium
+**Steps:** Create a booking with checkin 2031-03-10, then `GET /booking?checkin=2031-03-10`.
+**Expected:** The booking is returned. The apidoc says the filter returns bookings with
+checkin "greater than or equal to" the date.
+**Actual:** It is not returned; `checkin=2031-03-09` does return it. The filter is
+"greater than", so searching for today's arrivals misses all of them.
+**Test:** `Restful Booker API: searching bookings › checkin filter includes a booking that starts on the given date`
+
+### RB-08: Check-out filter works the wrong way round
+**Severity:** Medium
+**Steps:** Create a booking with checkout 2031-03-14, then search with `checkout=2031-03-13`
+and with `checkout=2031-03-15`.
+**Expected:** Returned for 03-13 (it ends after that date) and not for 03-15, per the
+apidoc's "greater than or equal to".
+**Actual:** The opposite: not returned for 03-13, returned for 03-15. The filter returns
+bookings ending on or before the date.
+**Tests:** `Restful Booker API: searching bookings › checkout filter includes a booking that ends after the given date`;
+`Restful Booker API: searching bookings › checkout filter excludes a booking that ends before the given date`
+
+### RB-09: Invalid date in a search filter crashes with 500
+**Severity:** Medium
+**Steps:** `GET /booking?checkin=not-a-date`.
+**Expected:** 400 saying the date format is wrong (the apidoc requires CCYY-MM-DD).
+**Actual:** 500 Internal Server Error.
+**Test:** `Restful Booker API: searching bookings › an invalid filter date is refused with 400, not a server error`
+
+### RB-10: Changing a booking that does not exist returns 405 instead of 404
+**Severity:** Low
+**Steps:** With a valid token, send `PUT`, `PATCH` or `DELETE` to `/booking/999999999`
+(or delete the same booking twice).
+**Expected:** 404 Not Found, as `GET` on the same id returns.
+**Actual:** 405 Method Not Allowed, which tells a client the method is unsupported,
+not that the booking is missing.
+**Tests:** `Restful Booker API: booking that does not exist › updating it returns 404`;
+`… › partially updating it returns 404`; `… › deleting it returns 404`
+
+### RB-11: XML responses are labelled as HTML
+**Severity:** Low
+**Steps:** `GET /booking/{id}` with `Accept: application/xml` (also `POST /booking` with an XML body).
+**Expected:** An XML body with `Content-Type: application/xml`.
+**Actual:** The body is correct XML, but `Content-Type` is `text/html`, so clients that
+honour the header will mis-parse it.
+**Test:** `Restful Booker API: request and response formats › a booking can be read as XML, with an XML content type`
+
+### RB-12: API documentation errors
+**Severity:** Low · **Found by:** reading the apidoc (not automated)
+**Found:**
+- PartialUpdateBooking's example request is `curl -X PUT`; the endpoint is `PATCH`.
+  Copying the example sends a full update, which then fails with 400.
+- DeleteBooking lists its result under "Success 200" but the response shown, and the
+  real one, is `201 Created`. 201 means "a resource was created", which is wrong for a delete.
+**Expected:** Examples and status codes that match the API's behaviour.
+**Note:** the tests follow the documented 201 for delete, as stated in DECISIONS.md.
 
 ---
 
@@ -259,7 +322,11 @@ on status codes treat a failed login as a success. No token is issued, which is 
 - A forged platform token is refused (403).
 - A room name containing HTML is displayed as text; no script runs.
 - Overlapping bookings for the same room are refused with 409.
-- Option A update and delete are refused without a valid token, and the booking survives.
+- Option A update, partial update and delete are refused (403) with no authorisation,
+  a forged token or wrong Basic credentials, and the booking is unchanged; both
+  documented methods (token cookie, Basic auth) work.
+- Option A accepts the documented XML and URL-encoded request bodies, and refuses a
+  full update (PUT) that is missing fields with 400.
 - Report dates: selecting nights 10–12 gives checkout on the 13th in every time zone
   tested (check-out is the morning after the last night).
 - Platform data disappearing after a while: the public demo resets on a schedule; by design.

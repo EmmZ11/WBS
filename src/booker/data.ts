@@ -16,6 +16,9 @@ export interface CreatedBooking {
   booking: BookerBooking;
 }
 
+/** The two ways the apidoc allows a write to be authorised: a token cookie or Basic auth. */
+export type BookerAuth = { token: string } | { username: string; password: string };
+
 export interface TokenResponse {
   token?: string;
   reason?: string;
