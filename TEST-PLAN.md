@@ -46,7 +46,7 @@ is the executable version of them.
 
 ## 4. Approach
 
-- **API is the source of truth.** Every UI action is confirmed with an API read.
+- **API is the source of truth.** Every UI action that changes data is confirmed with an API read.
 - **Tests assert the correct behaviour.** When the system is wrong, the test fails
   with the bug ID and the expected and actual result. Nothing is skipped or hidden.
 - **Each test owns its data.** Unique fictional names, a fresh room per booking test.
