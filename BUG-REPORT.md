@@ -7,8 +7,8 @@ so the evidence (error message with expected and actual values, page snapshot an
 for UI tests, a screenshot) is in the HTML report.
 
 **Run used for this report:** GitHub Actions run
-[45010769154](https://github.com/EmmZ11/WBS/actions/runs/45010769154), commit `aad1192`,
-22 November 2026. The HTML report of that run is committed in [report/](report/index.html).
+[45605483678](https://github.com/EmmZ11/WBS/actions/runs/45605483678), commit `81d2ce3`,
+25 November 2026. The HTML report of that run is committed in [report/](report/index.html).
 
 | Tests | Passed | Failed | Flaky | Skipped |
 |---|---|---|---|---|
